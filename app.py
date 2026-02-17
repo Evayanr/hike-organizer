@@ -5,26 +5,28 @@
 
 import streamlit as st
 from datetime import datetime, timedelta
+import sys
+import os
+
+# ============ 关键修复：确保 Python 路径正确 ============
+project_root = os.path.dirname(os.path.abspath(__file__))
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
+
+# ============ 导入模块 ============
 try:
     from utils.database import Database
     from utils.crawler import TwoBuluCrawler
     from utils.poster import PosterGenerator
     from utils.weather import WeatherAPI
     from utils.wechat import WeChatBot
+    from dateutil.relativedelta import relativedelta
 except ImportError as e:
     st.error(f"❌ 导入模块失败：{e}")
     st.error("请检查所有依赖是否已正确安装")
     st.终止()
-    
-import os
-# ============ 关键修复：确保 Python 路径正确 ============
-project_root = os.path.dirname(os.path.abspath(__file__))
-if project_root not in sys.path:
-    sys.path.insert(0, project_root)
-    
-from dateutil.relativedelta import relativedelta
 
-# 页面配置
+# ============ 页面配置 ============
 st.set_page_config(
     page_title="徒步活动组织系统",
     page_icon="🚶",
@@ -32,7 +34,7 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# 初始化数据库
+# ============ 初始化数据库 ============
 @st.cache_resource
 def init_db():
     # 确保数据目录存在
@@ -42,20 +44,21 @@ def init_db():
     db.init_faq_data()
     
     # 检查是否已有路线数据，如果没有则插入测试数据
-routes_count = db.get_routes_count()
-if routes_count == 0:
-    try:
-        from insert_test_routes import insert_test_routes
-        insert_test_routes(db)
-    except ImportError as e:
-        print(f"无法导入测试数据：{e}")
-        st.warning("⚠️ 无法自动导入测试数据，请手动点击「刷新路线」按钮")
+    routes_count = db.get_routes_count()
+    if routes_count == 0:
+        try:
+            # 导入测试数据函数
+            from insert_test_routes import insert_test_routes
+            insert_test_routes(db)
+        except ImportError as e:
+            print(f"无法导入测试数据：{e}")
+            st.warning("⚠️ 无法自动导入测试数据，请手动点击「刷新路线」按钮")
     
     return db
 
 db = init_db()
 
-# 初始化工具类
+# ============ 初始化工具类 ============
 @st.cache_resource
 def init_tools():
     return {
@@ -214,7 +217,7 @@ with tab2:
     # 检查是否已选择路线
     if 'selected_route' not in st.session_state:
         st.warning("请先在「路线选择」标签页选择一条路线")
-        st.stop()
+        st.终止()
 
     selected_route = st.session_state['selected_route']
 
@@ -359,7 +362,7 @@ with tab3:
     # 检查是否已生成海报
     if 'poster_path' not in st.session_state:
         st.warning("请先在「海报制作」标签页生成海报")
-        st.stop()
+        st.终止()
 
     # 显示海报
     st.subheader("📋 活动海报预览")

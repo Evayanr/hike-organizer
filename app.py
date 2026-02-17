@@ -13,6 +13,9 @@ from utils.wechat import WeChatBot
 import os
 from dateutil.relativedelta import relativedelta
 
+# 在顶部导入测试数据函数（避免在缓存函数内部导入）
+from insert_test_routes import insert_test_routes
+
 # 页面配置
 st.set_page_config(
     page_title="徒步活动组织系统",
@@ -33,8 +36,7 @@ def init_db():
     # 检查是否已有路线数据，如果没有则插入测试数据
     routes_count = db.get_routes_count()
     if routes_count == 0:
-        # 导入测试数据函数
-        from insert_test_routes import insert_test_routes
+        # 插入测试数据（函数已在顶部导入）
         insert_test_routes(db)
     
     return db

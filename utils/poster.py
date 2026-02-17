@@ -9,9 +9,24 @@ from typing import Dict, List, Optional
 import os
 import requests
 from io import BytesIO
+from datetime import datetime
 
 class PosterGenerator:
     """海报生成器"""
+
+    def __init__(self):
+        self.poster_width = 1080  # 海报宽度
+        self.poster_height = 1920  # 海报高度
+        self.assets_dir = "assets"
+
+        # 确保资源目录存在
+        os.makedirs(self.assets_dir, exist_ok=True)
+
+        # 字体设置 - 支持Linux环境
+        self.title_font = self._load_font(72)
+        self.subtitle_font = self._load_font(48)
+        self.content_font = self._load_font(36)
+        self.small_font = self._load_font(28)
 
     def _load_font(self, size):
         """加载字体，支持多种系统"""
@@ -39,19 +54,7 @@ class PosterGenerator:
         print(f"警告：无法加载字体，使用默认字体")
         return ImageFont.load_default()
 
-    def __init__(self):
-        self.poster_width = 1080  # 海报宽度
-        self.poster_height = 1920  # 海报高度
-        self.assets_dir = "assets"
-
-        # 确保资源目录存在
-        os.makedirs(self.assets_dir, exist_ok=True)
-
-        # 字体设置 - 支持Linux环境
-        self.title_font = self._load_font(72)
-        self.subtitle_font = self._load_font(48)
-        self.content_font = self._load_font(36)
-        self.small_font = self._load_font(28)
+    def generate_themes(self, route_info: Dict) -> List[str]:
         """
         根据路线信息生成主题词
 
@@ -111,14 +114,6 @@ class PosterGenerator:
         """
         # 这里使用Pexels API（需要配置API Key）
         # 暂时返回示例URL，实际需要调用API
-
-        # Pexels API调用示例（需要API Key）
-        # api_key = "YOUR_PEXELS_API_KEY"
-        # url = f"https://api.pexels.com/v1/search?query={theme}&per_page={count}"
-        # headers = {"Authorization": api_key}
-        # response = requests.get(url, headers=headers)
-        # data = response.json()
-        # return [photo['src']['large'] for photo in data['photos']]
 
         # 临时返回示例URL
         sample_images = {
@@ -207,6 +202,7 @@ class PosterGenerator:
 
         # 处理背景图（调整大小并添加半透明遮罩）
         bg_image = background_image.resize((self.poster_width, self.poster_height))
+        bg_image = bg_image.convert('RGBA')
         bg_image.putalpha(128)  # 半透明
         poster.paste(bg_image, (0, 0))
 
@@ -284,9 +280,9 @@ class PosterGenerator:
         difficulty = route_info.get('difficulty', '初级')
 
         info_text = [
-            f"📍 路线：{route_info.get('name', '')}",
-            f"🏃 里程：{distance}公里 | 爬升：{elevation}米",
-            f"⏱️ 时长：{duration}小时 | 难度：{difficulty}"
+            f"路线：{route_info.get('name', '')}",
+            f"里程：{distance}公里 | 爬升：{elevation}米",
+            f"时长：{duration}小时 | 难度：{difficulty}"
         ]
 
         current_y = y + 50
@@ -297,7 +293,7 @@ class PosterGenerator:
     def _draw_vote_options(self, draw: ImageDraw.Draw, vote_options: List[Dict], y: int):
         """绘制投票选项"""
         # 标题
-        draw.text((60, y), "📅 活动日期投票", fill='white', font=self.subtitle_font)
+        draw.text((60, y), "活动日期投票", fill='white', font=self.subtitle_font)
 
         current_y = y + 70
 
@@ -311,7 +307,7 @@ class PosterGenerator:
             draw.rounded_rectangle(
                 [(card_margin, card_y), (self.poster_width - card_margin, card_y + card_height)],
                 radius=10,
-                fill='rgba(255, 255, 255, 0.9)'
+                fill=(255, 255, 255, 230)
             )
 
             # 选项内容

@@ -5,12 +5,23 @@
 
 import streamlit as st
 from datetime import datetime, timedelta
-from utils.database import Database
-from utils.crawler import TwoBuluCrawler
-from utils.poster import PosterGenerator
-from utils.weather import WeatherAPI
-from utils.wechat import WeChatBot
+try:
+    from utils.database import Database
+    from utils.crawler import TwoBuluCrawler
+    from utils.poster import PosterGenerator
+    from utils.weather import WeatherAPI
+    from utils.wechat import WeChatBot
+except ImportError as e:
+    st.error(f"❌ 导入模块失败：{e}")
+    st.error("请检查所有依赖是否已正确安装")
+    st.终止()
+    
 import os
+# ============ 关键修复：确保 Python 路径正确 ============
+project_root = os.path.dirname(os.path.abspath(__file__))
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
+    
 from dateutil.relativedelta import relativedelta
 
 # 页面配置
@@ -31,11 +42,14 @@ def init_db():
     db.init_faq_data()
     
     # 检查是否已有路线数据，如果没有则插入测试数据
-    routes_count = db.get_routes_count()
-    if routes_count == 0:
-        # 导入测试数据函数
+routes_count = db.get_routes_count()
+if routes_count == 0:
+    try:
         from insert_test_routes import insert_test_routes
         insert_test_routes(db)
+    except ImportError as e:
+        print(f"无法导入测试数据：{e}")
+        st.warning("⚠️ 无法自动导入测试数据，请手动点击「刷新路线」按钮")
     
     return db
 

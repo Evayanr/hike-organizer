@@ -24,8 +24,19 @@ st.set_page_config(
 # 初始化数据库
 @st.cache_resource
 def init_db():
+    # 确保数据目录存在
+    os.makedirs("data", exist_ok=True)
+    
     db = Database("data/hike.db")
     db.init_faq_data()
+    
+    # 检查是否已有路线数据，如果没有则插入测试数据
+    routes_count = db.get_routes_count()
+    if routes_count == 0:
+        # 导入测试数据函数
+        from insert_test_routes import insert_test_routes
+        insert_test_routes(db)
+    
     return db
 
 db = init_db()

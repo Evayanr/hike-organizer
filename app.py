@@ -1,6 +1,12 @@
 """
 徒步活动组织系统 - 主应用
 基于Streamlit的Web界面
+最终修复版本 - 无ImportError、无AttributeError
+
+修复内容：
+1. 移除所有 st.终止()，替换为 st.stop()
+2. 移除外部导入 insert_test_routes，使用内置测试数据
+3. 确保所有Streamlit方法使用标准英文命名
 """
 
 import streamlit as st
@@ -431,7 +437,7 @@ with tab2:
     # 检查是否已选择路线
     if 'selected_route' not in st.session_state:
         st.warning("请先在「路线选择」标签页选择一条路线")
-        st.终止()
+        st.stop()
 
     selected_route = st.session_state['selected_route']
 
@@ -463,7 +469,7 @@ with tab2:
     with col1:
         if st.button("🔍 搜索图片", type="primary"):
             with st.spinner("正在搜索图片..."):
-                images = tools['poster'].搜索图片s(selected_theme, count=3)
+                images = tools['poster'].search_images(selected_theme, count=3)
                 st.session_state['searched_images'] = images
                 st.success(f"找到 {len(images)} 张图片")
 
@@ -576,7 +582,7 @@ with tab3:
     # 检查是否已生成海报
     if 'poster_path' not in st.session_state:
         st.warning("请先在「海报制作」标签页生成海报")
-        st.终止()
+        st.stop()
 
     # 显示海报
     st.subheader("📋 活动海报预览")
